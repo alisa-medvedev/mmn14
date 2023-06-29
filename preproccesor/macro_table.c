@@ -4,15 +4,20 @@
 #include "macro_table.h"
 
 #define INITIAL_CAPACITY 10
+#define INCREASE_LINES 5
 
 
 void add_line_to_macro(struct macro *macro, const char *line) {
     // Resize the lines array within the macro
-    macro->lines = realloc(macro->lines, (macro->num_of_lines + 1) * sizeof(char *));
+    macro->lines = realloc(macro->lines, (macro->num_of_lines + INCREASE_LINES) * sizeof(char *));
 
     // Add the new line to the macro
     macro->lines[macro->num_of_lines] = strdup(line);
     macro->num_of_lines++;
+}
+void initialize_macro(struct macro *macro) {
+    macro->num_of_lines = 0;
+    macro->lines = NULL;
 }
 
 void initialize_macro_table(struct macro_table *table) {
@@ -31,6 +36,15 @@ void add_macro_to_table(struct macro_table *table, const struct macro *new_macro
     // Add the new macro to the macro table
     table->macros[table->num_macros] = *new_macro;
     table->num_macros++;
+}
+
+int search_macro_name(const struct macro_table *table, const char *name) {
+    for (int i = 0; i < table->num_macros; i++) {
+        if (strcmp(table->macros[i].macro_name, name) == 0) {
+            return i;  // Return the index of the matching macro
+        }
+    }  
+    return -1;  // Return -1 if the macro name is not found
 }
 
 

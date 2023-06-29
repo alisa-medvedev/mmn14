@@ -16,8 +16,10 @@ struct macro_table {
 };
 
 void add_line_to_macro(struct macro *macro, const char *line);
+void initialize_macro(struct macro *macro);
 void initialize_macro_table(struct macro_table *table);
 void add_macro_to_table(struct macro_table *table, const struct macro *new_macro);
+int search_macro_name(const struct macro_table *table, const char *name);
 void free_macro_table(struct macro_table *table);
 
 #endif /* MACRO_TABLE_H */
