@@ -9,7 +9,7 @@
 struct trie_node{
     char current;
     void * end_of_str_ctx;/*end of a string*/
-    struct trie_node * next[96];/*array of 96 pointers*/
+    struct trie_node * next[96];
 };
 
 struct trie{
@@ -34,7 +34,7 @@ Trie trie(){
 /*checks existance of a word*/
 int trie_exists(Trie trie,const char *string)
 {
-    return internal_trie_exists(trie->next[(*string) - TRIE_BASE_CHAR],string: string+1) == NULL ? 0:1;
+    return internal_trie_exists(node_i: trie->next[(*string) - TRIE_BASE_CHAR],string: string+1) == NULL ? 0:1; 
 }
 
 /*insertion to the trie*/
