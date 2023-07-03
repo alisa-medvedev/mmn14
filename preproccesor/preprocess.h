@@ -1,6 +1,7 @@
 #ifndef PREPROCESS
 #define PREPROCESS
+#include <stdio.h>
 
-const char *open_macros(char *file_name);
+void open_macros(char *file_name, FILE **as_file_ptr, FILE **am_file_ptr);
 
 #endif /* PREPROCESS */
