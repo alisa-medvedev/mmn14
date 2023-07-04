@@ -2,54 +2,62 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define TRIE_BASE_CHAR '0'
-#define N 75 /*number of chars from '0' to 'z' in ASCII Table*/
+#define TRIE_BASE_CHAR ' '
+#define N 95 /*number of possible chars*/
 
 struct trie_node {
-    char current;
-    void * end_of_str_ctx;/*end of a string context*/
-    struct trie_node * next[N];
-    int end_of_str;
+    trie_node *children[N];
+    void *end_of_str;
 };
 
-/*returns pointer to a node*/
-static trie_node *internal_trie_exists(trie_node * node_i,const char * string) {
-    if(node_i == NULL)
-        return NULL;
-    if(*string == '\0' && node_i->end_of_str_ctx != NULL){
-        return node_i;
-    }
-    return internal_trie_exists(node_i: node_i->next[(*string) - TRIE_BASE_CHAR],string++);
-}
-
-trie_node* make_trie(void) {
-    return (trie_node*) calloc(1, sizeof(trie_node));
+trie_node *make_trienode() {
+    /*Memory allocation for a trie_node*/
+    return (trie_node *)calloc(1, sizeof(trie_node));
 } 
 
-/*insertion to the trie*/
-const char *trie_insert(trie_node *root,const char *string,void *end_of_str_ctx) {
-    trie_node ** iterator = &root->next[(*string) - TRIE_BASE_CHAR];
-    while(*string != '\0') {
-        if(*iterator == NULL) {
-            (*iterator) = calloc(1, sizeof(trie_node));
-            if(*iterator == NULL)
+/*Insertion of a string onto the trie*/
+const char *trie_insert(trie_node *root,const char *string,void *end_of_str) {
+    trie_node **temp = &root->children[(*string) - TRIE_BASE_CHAR];
+    while(1) {
+        if(*temp == NULL) {
+            *temp = make_trienode();
+            if(*temp == NULL)
                 return NULL;
         }
         string++;
-        iterator = &(*iterator)->next[(*string) - TRIE_BASE_CHAR];
+        if(*string != '\0')
+            temp = &(*temp)->children[(*string) - TRIE_BASE_CHAR];
+        else
+            break;
     }
-    (*iterator)->end_of_str_ctx = end_of_str_ctx;
+    /*At the end of the string */
+    (*temp)->end_of_str = end_of_str;
     return string;
 }
 
-/*checks existance of a word*/
-void * trie_exists(trie_node *root,const char *string) {
-    trie_node * find_node = internal_trie_exists(node_i:root->next[(*string) - TRIE_BASE_CHAR],string: string+1);
-    return find_node == NULL ? NULL : find_node->end_of_str_ctx;
+
+/*Checks the existance of a string*/
+void *search_trie(trie_node *root,const char *string) {
+    trie_node* temp = root;
+    for(; *string !='\0'; string++)
+    {
+        if (temp->children[(*string) - TRIE_BASE_CHAR] == NULL)
+            return NULL;
+        temp = temp->children[(*string) - TRIE_BASE_CHAR];
+    }
+    if (temp != NULL && temp->end_of_str != NULL)
+        return temp = temp->end_of_str;
+    return NULL;
 }
 
-
 /*memory release*/
-void trie_destroy(trie_node *root) {
-
+void trie_destroy(trie_node *node) {
+    int i;
+    if(node == NULL)
+        return;
+    for(i = 0; i < N; i++) {
+        trie_destroy(node->children[i]);
+    }
+    free(node->end_of_str);
+    free(node);
 }
