@@ -6,7 +6,7 @@
 #define N 95 /*number of possible chars*/
 
 struct trie_node {
-    trie_node *children[N];
+    struct trie_node *children[N];
     void *end_of_str;
 };
 
@@ -60,4 +60,28 @@ void trie_destroy(trie_node *node) {
     }
     free(node->end_of_str);
     free(node);
+}
+
+int main() {
+    int i;
+    trie_node *root;
+    const char *f;
+    const char *strings[4] = {
+        [0] = "hello",
+        [1] = "hellow",
+        [2] = "hellno",
+        [3] = "mika"
+    };
+    root = make_trienode();
+    for(i=0;i<4;i++) {
+        trie_insert(root, strings[i], &strings[i]);
+    }
+    for(i=0;i<4;i++) {
+        f = search_trie(root, (char *)strings);
+        if(f) {
+            printf("%s",f);
+        }
+    }
+    trie_destroy(root);
+	return 1;
 }
