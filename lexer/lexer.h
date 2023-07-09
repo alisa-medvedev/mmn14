@@ -9,7 +9,7 @@
 struct syntex_tree
 {
     char syntax_error[ERROR_LEN];
-    char label[LABEL_LEN]
+    char label[LABEL_LEN];
 
     enum {
         inst_line,
