@@ -10,14 +10,6 @@ struct trie_node {
     void *end_of_str_cnx;
 };
 
-/*
-struct Trie {
-    trie_node *children[N];
-};*/
-/*trie_node *create_trie() {
-
-}*/
-
 trie_node *make_trienode() {
     /*Memory allocation for a trie_node*/
     int i;
@@ -48,26 +40,6 @@ const char *trie_insert(trie_node *root,const char *string,void *end_of_str_cnx)
     temp->end_of_str_cnx = end_of_str_cnx;
     return string;
 }
-
-/*
-    trie_node **temp = &root->children[(*string) - TRIE_BASE_CHAR];
-    while(1) {
-        if(*temp == NULL) {
-            *temp = make_trienode();
-            if(*temp == NULL)
-                return NULL;
-        }
-        string++;
-        if(*string != '\0')
-            temp = &(*temp)->children[(*string) - TRIE_BASE_CHAR];
-        else
-            break;
-    }*/
-    /*At the end of the string */
-  /*  (*temp)->end_of_str = end_of_str;
-    return string;
-}
-*/
 
 /*Checks the existance of a string*/
 void *search_trie(trie_node *root,const char *string) {
