@@ -1,8 +1,8 @@
 
 #include "lexer.h"
 
-trie_node instruction_lookup = NULL;
-trie_node direction_lookup = NULL;
+trie_node instruction_lookup;
+trie_node direction_lookup;
 
 /*operand options: I - Integer  L - Label  R - Register*/
 static struct instraction_options {
@@ -29,6 +29,13 @@ static struct instraction_options {
 
     {"rts", rts, NULL, NULL},
     {"stop", stop, NULL, NULL}
+};
+
+static void init_inst_trie() {
+    int i;
+    for(i = 0; i < 16; i++) {
+        trie_insert(instruction_lookup, instraction_opt_tab[i]->inst_name, &instraction_opt_tab[i]); 
+    }
 }
 
 /*Create a utils.c for such func*/
@@ -39,14 +46,20 @@ void skip_spaces(char *line) {
     }
 }
 
+static int is_valid_label(char *p1) {
 
+}
 
 struct syntex_tree get_pattern(char *line){
    struct syntex_tree ast = {0};
+   char *p1;
+   char *p1;
    char token[MAX_STRING_LEN] = {0};
 
-
    skip_spaces(line);
+   p1 = line;
+   p2 = strchr(line,':');
+   if(p2)
 
 
 
@@ -56,9 +69,6 @@ static int numeric_token_parser(char *line, int min, int max) {
 
 }
 
-static int label_token_parser(char *line) {
-
-}
 
 static int operand_token_parser(char *line) {
 
