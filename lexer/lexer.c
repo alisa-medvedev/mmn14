@@ -1,8 +1,10 @@
 
 #include "lexer.h"
 
+/*need to think how to organize all the errors options*/
+
 trie_node instruction_lookup;
-trie_node direction_lookup;
+trie_node directive_lookup;
 
 
 /*operand options: I - Integer  L - Label  R - Register*/
@@ -36,11 +38,12 @@ static struct instraction_options {
 static struct diractive_options {
     const char *diractive_name;
     int key;
+    const char param_opt;
 }diractive_opt_table[4] = {
-    {"data",NULL},
-    {"string",NULL},
-    {"entry",NULL},
-    {"extern",NULL}
+    {"data",NULL,'I'},
+    {"string",NULL,'S'},
+    {"entry",NULL,'L'},
+    {"extern",NULL,'L'}
 };
 
 static void init_inst_trie() {
@@ -61,7 +64,7 @@ static void init_dir_trie() {
 /*Create a utils.c for such func*/
 void skip_spaces(char *line) {
     int i = 0;
-    while (line[i] == ' ' || line[i] == '\t' || line[i] == '\n' || line[i] == '\r') {
+    while (line[i] == ' ' || line[i] == '\t') {
         i++;
     }
 }
@@ -74,45 +77,100 @@ enam label_validity_opt{
     is_valid
 };
 
-enam label_validity_opt label_token_check(char *label) {
+enam label_validity_opt label_token_check(char *line, char *token) {
     int char_count = 0;
-    if(!isalpha(*label)) {
+    if(!isalpha(*line)) {
         return non_alpha_first_char;
     }
-    if((*label++) == ':'){
+    /*label name contains 1 char*/
+    if((*(line+1)) == ':'){
+        *token = *(line+1);
         return is_valid;
     };
-    while(*label != ':') {
-        if(!isalnum(*label)) {
+    while(*line != ':') {
+        if(!isalnum(*line)) {
             return contains_non_alpha_numric_char;
         }
         if(count > LABEL_LEN) {
             return exceeds_possible_length;
         }
+        *token = *(line+1);
         char_count++;
-        label++;
+        line++;
+        token++;
     }
     return is_valid;
+}
+
+enam numeric_validity_opt{
+    not_a_valid_baginning,
+    int_out_of_bounds,
+    non_digit_val,
+    is_valid
+};
+
+static int dirc_parameter_parser(char *line, char *token, char *dirc) {
+
+    if(dirc == diractive_opt_table[0]) {
+        while() {
+            skip_spaces(line);
+            if(*line != '+' && *line != '-' && !isdigit(*line)) {
+                return not_a_valid_baginning;
+            }
+            numeric_token_parser(line, token, -2048, 2047);
+        }
+        skip_spaces(line);
+        if(   )
+        numeric_token_parser(line, token, -2048, 2047);
+    }
+    if(dirc == diractive_opt_table[1]) {
+
+    }
+    if(dirc == diractive_opt_table[2]) {
+
+    }
+    if(dirc == diractive_opt_table[3]) {
+
+    }
+
+
+}
+
+static enam data_dirc_validity_opt numeric_token_parser(char *line, char *token, int min, int max) {
+    int char_count = 0;
+    if(*line == '+' || *line == '-' ) {
+        *token = *line;
+        line++;
+        token++;
+    }
+    while(isdigit(*line)) {
+        char_count++;
+        if(char_count > 4) {
+            return int_out_of_bounds;
+        }
+        *token = *line;
+        line++;
+        token++;
+    }
 }
 
 
 struct syntex_tree get_pattern(char *line){
 
-    int token_len;
     struct syntex_tree ast = {0};
-    char *stkn;
     char *etkn;
+    char *dir;
+    char *inst;
     char token[MAX_STRING_LEN] = {0};
     enam label_validity_opt label_check;
 
     init_inst_trie()
     init_dir_trie()
     skip_spaces(line);
-    stkn = line;
     etkn = strchr(line,':'); /*If we have ':' there has to be a label declaration before*/
-    if(etkn && ((label_check =  label_token_check(line)) == is_valid)) {
-        token_len = line - stkn;
-        memcpy(ast.label, stkn, token_len);
+    if(etkn && ((label_check =  label_token_check(line, token)) == is_valid)) {
+        strcpy(ast.label, token);
+        token[0] = '\0';
     }
     else{
         if(label_check == non_alpha_first_char) {
@@ -127,7 +185,6 @@ struct syntex_tree get_pattern(char *line){
         ast.union_option = ast.syntax_err;
         return ast;
    }
-   line++;
    skip_spaces(line);
    if(ast.label[0] && *line == '\0'){
     strcpy(ast.syntax_err,"Empty line after a label declaration.");
@@ -136,10 +193,33 @@ struct syntex_tree get_pattern(char *line){
    }
    if (*(line+1) == '.') {
     line++;
-    search_trie(direction_lookup, line);
+    dir = search_trie(directive_lookup, line);
+    if(dir == NULL){
+        strcpy(ast.syntax_err,"Undefined directory.");
+        ast.union_option = ast.syntax_err;
+        return ast;
+    }
+    else{
+        skip_directive /*will correct latter*/
+        skip_spaces(line);
+        if(*line == '\0'){
+            strcpy(ast.syntax_err,"Empty line after a directive declaration.");
+            ast.union_option = ast.syntax_err;
+            return ast;
+        }
+        dirc_parameter_parser(line, token, dirc)
+
+
+    }
+    ast.union_option = ast.dir_line;
    }
    else{
-    search_trie(instruction_lookup, line);
+    inst = search_trie(instruction_lookup, line);
+        if(inst == NULL){
+            strcpy(ast.syntax_err,"Undefined instraction.");
+            ast.union_option = ast.syntax_err;
+            return ast;
+        }
    }
 
 
@@ -147,9 +227,6 @@ struct syntex_tree get_pattern(char *line){
 
 }
 
-static int numeric_token_parser(char *line, int min, int max) {
-
-}
 
 
 static int operand_token_parser(char *line) {
