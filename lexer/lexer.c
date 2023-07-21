@@ -118,9 +118,10 @@ static int dirc_parameter_parser(char *line, char *token, char *dirc) {
                 return not_a_valid_baginning;
             }
             numeric_token_parser(line, token, -2048, 2047);
+            if
         }
         skip_spaces(line);
-        if(   )
+        if()
         numeric_token_parser(line, token, -2048, 2047);
     }
     if(dirc == diractive_opt_table[1]) {
@@ -136,26 +137,26 @@ static int dirc_parameter_parser(char *line, char *token, char *dirc) {
 
 }
 
-static enam data_dirc_validity_opt numeric_token_parser(char *line, char *token, int min, int max) {
-    int char_count = 0;
+static enam data_dirc_validity_opt get_numeric_token(char *line, char *token, int min, int max) {
+    int num_op, sign;
+    sign = (*line == '-') ? -1 : 1;
     if(*line == '+' || *line == '-' ) {
         *token = *line;
         line++;
         token++;
     }
-    while(isdigit(*line)) {
-        char_count++;
-        if(char_count > 4) {
+    for(num_op = 0; isdigit(*line); line++){
+        num_op = 10 * num_op + (*line - '0');
+        if((sign == -1 && sign * num_op < min) || (sign == 1 && sign * num_op > max)) {
             return int_out_of_bounds;
         }
         *token = *line;
-        line++;
         token++;
     }
 }
 
 
-struct syntex_tree get_pattern(char *line){
+struct syntex_tree get_pattern(char *line) {
 
     struct syntex_tree ast = {0};
     char *etkn;
@@ -164,8 +165,8 @@ struct syntex_tree get_pattern(char *line){
     char token[MAX_STRING_LEN] = {0};
     enam label_validity_opt label_check;
 
-    init_inst_trie()
-    init_dir_trie()
+    init_inst_trie();
+    init_dir_trie();
     skip_spaces(line);
     etkn = strchr(line,':'); /*If we have ':' there has to be a label declaration before*/
     if(etkn && ((label_check =  label_token_check(line, token)) == is_valid)) {
