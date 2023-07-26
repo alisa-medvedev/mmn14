@@ -1,6 +1,12 @@
 
 #include "lexer.h"
 
+#define DATA_MIN_PARAM -2048
+#define DATA_MAX_PARAM 2047
+#define INST_PARAM_MIN -512
+#define INST_PARAM_MIN 511
+
+
 /*need to think how to organize all the errors options*/
 
 trie_node instruction_lookup;
@@ -10,40 +16,40 @@ trie_node directive_lookup;
 /*operand options: I - Integer  L - Label  R - Register*/
 static struct instraction_options {
     const char *inst_name;
-    int key;
+    int inst_name_len;
     const char *source_operand_opt;
     const char *dest_operand_opt;
 } instraction_opt_tab[16] = {
-    {"mov", mov, "ILR", "LR"},
-    {"cmp", cmp, "ILR", "ILR"}, 
-    {"add", add, "ILR", "LR"},
-    {"sub", sub, "ILR", "LR"},
-    {"lea", lea, "L", "LR"},
+    {"mov", 3, "ILR", "LR"},
+    {"cmp", 3, "ILR", "ILR"}, 
+    {"add", 3, "ILR", "LR"},
+    {"sub", 3, "ILR", "LR"},
+    {"lea", 3, "L", "LR"},
 
-    {"not", not, NULL, "LR"},
-    {"clr", clr, NULL, "LR"},
-    {"inc", inc, NULL, "LR"},
-    {"dec", dec, NULL, "LR"},
-    {"jmp", jmp, NULL, "LR"},
-    {"bne", bne, NULL, "LR"},
-    {"red", red, NULL, "LR"},
-    {"prn", prn, NULL, "ILR"},
-    {"jsr", jsr, NULL, "LR"},
+    {"not", 3, NULL, "LR"},
+    {"clr", 3, NULL, "LR"},
+    {"inc", 3, NULL, "LR"},
+    {"dec", 3, NULL, "LR"},
+    {"jmp", 3, NULL, "LR"},
+    {"bne", 3, NULL, "LR"},
+    {"red", 3, NULL, "LR"},
+    {"prn", 3, NULL, "ILR"},
+    {"jsr", 3, NULL, "LR"},
 
-    {"rts", rts, NULL, NULL},
-    {"stop", stop, NULL, NULL}
+    {"rts", 3, NULL, NULL},
+    {"stop", 4, NULL, NULL}
 };
 
 
 static struct diractive_options {
     const char *diractive_name;
-    int key;
+    int dir_name_len;
     const char param_opt;
 }diractive_opt_table[4] = {
-    {"data",NULL,'I'},
-    {"string",NULL,'S'},
-    {"entry",NULL,'L'},
-    {"extern",NULL,'L'}
+    {"data", 4, 'I'},
+    {"string", 6, 'S'},
+    {"entry", 5, 'L'},
+    {"extern", 6, 'L'}
 };
 
 static void init_inst_trie() {
@@ -77,17 +83,17 @@ enam label_validity_opt{
     is_valid
 };
 
-enam label_validity_opt label_token_check(char *line, char *token) {
+enam label_validity_opt label_token_check(char *line, char *token, char *end) {
     int char_count = 0;
     if(!isalpha(*line)) {
         return non_alpha_first_char;
     }
     /*label name contains 1 char*/
-    if((*(line+1)) == ':'){
+    if((line+1) == end){
         *token = *(line+1);
         return is_valid;
     };
-    while(*line != ':') {
+    while(line != end) {
         if(!isalnum(*line)) {
             return contains_non_alpha_numric_char;
         }
@@ -117,12 +123,12 @@ static int dirc_parameter_parser(char *line, char *token, char *dirc) {
             if(*line != '+' && *line != '-' && !isdigit(*line)) {
                 return not_a_valid_baginning;
             }
-            numeric_token_parser(line, token, -2048, 2047);
+            numeric_token_parser(line, token, DATA_MIN_PARAM, DATA_MAX_PARAM);
             if
         }
         skip_spaces(line);
         if()
-        numeric_token_parser(line, token, -2048, 2047);
+        numeric_token_parser(line, token, DATA_MIN_PARAM, DATA_MAX_PARAM);
     }
     if(dirc == diractive_opt_table[1]) {
 
@@ -135,6 +141,25 @@ static int dirc_parameter_parser(char *line, char *token, char *dirc) {
     }
 
 
+}
+
+static int inst_parameter_parameter(char *line, char *token, char *inst) {
+     numeric_token_parser(line, token, INST_PARAM_MIN, INST_PARAM_MAX);
+}
+
+char inst_operand_type(char *line) {
+    if(*line == '@') {
+        return 'R';
+    }
+    else if(isalpha(*line)) {
+        return 'L';
+    }
+    else if(isdigit(*line) || *line == '+' || *line == '-') {
+        return 'I';
+    }        
+    else {
+        return NULL;
+    }
 }
 
 static enam data_dirc_validity_opt get_numeric_token(char *line, char *token, int min, int max) {
@@ -159,21 +184,23 @@ static enam data_dirc_validity_opt get_numeric_token(char *line, char *token, in
 struct syntex_tree get_pattern(char *line) {
 
     struct syntex_tree ast = {0};
-    char *etkn;
     char *dir;
-    char *inst;
+    struct instraction_options *inst = NULL;
+    struct diractive_options *dir = NULL;
+    char *temp;
+    char operand_type;
     char token[MAX_STRING_LEN] = {0};
     enam label_validity_opt label_check;
 
     init_inst_trie();
     init_dir_trie();
     skip_spaces(line);
-    etkn = strchr(line,':'); /*If we have ':' there has to be a label declaration before*/
-    if(etkn && ((label_check =  label_token_check(line, token)) == is_valid)) {
-        strcpy(ast.label, token);
-        token[0] = '\0';
-    }
-    else{
+    if((temp = strchr(line,':')) != NULL) {/*If we have ':' there has to be a label declaration before*/
+        if((label_check = label_token_check(line, token, temp)) == is_valid) {
+            strcpy(ast.label, token);
+            token[0] = '\0';
+        }   
+        else{
         if(label_check == non_alpha_first_char) {
             strcpy(ast.syntax_err,"The first characted of a label is not a letter.");
         }
@@ -185,7 +212,8 @@ struct syntex_tree get_pattern(char *line) {
         }
         ast.union_option = ast.syntax_err;
         return ast;
-   }
+        }
+    }
    skip_spaces(line);
    if(ast.label[0] && *line == '\0'){
     strcpy(ast.syntax_err,"Empty line after a label declaration.");
@@ -215,21 +243,40 @@ struct syntex_tree get_pattern(char *line) {
     ast.union_option = ast.dir_line;
    }
    else{
-    inst = search_trie(instruction_lookup, line);
+        inst = search_trie(instruction_lookup, line);
         if(inst == NULL){
             strcpy(ast.syntax_err,"Undefined instraction.");
             ast.union_option = ast.syntax_err;
             return ast;
         }
+        line = line + inst->name_len;
+        skip_spaces(line);
+        if(*line == '\0') {
+            if (inst->dest_operand_opt != NULL) {
+                strcpy(ast.syntax_err,"Missing operand.");
+                ast.union_option = ast.syntax_err;
+                return ast;
+            }
+            ast.union_option = ast.inst_line;
+            strcpy(ast.inst_name, inst->inst_name);
+            ast.inst_opperands_option = {no_op, no_op};
+            return ast;
+        }
+
+        if((temp = strchr(line,',')) != NULL ) {
+            if(instraction_options.*source_operand_opt == NULL) {
+                strcpy(ast.syntax_err,"Too many operators for this instraction.");
+                ast.union_option = ast.syntax_err;
+                return ast;
+            }
+
+
+
+        }
+
    }
 
 
 
-
-}
-
-
-
-static int operand_token_parser(char *line) {
 
 }
