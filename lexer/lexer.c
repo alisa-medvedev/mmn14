@@ -19,7 +19,7 @@ static struct instraction_options {
     int inst_name_len;
     const char *source_operand_opt;
     const char *dest_operand_opt;
-} instraction_opt_tab[16] = {
+} instraction_options[16] = {
     {"mov", 3, "ILR", "LR"},
     {"cmp", 3, "ILR", "ILR"}, 
     {"add", 3, "ILR", "LR"},
@@ -45,7 +45,7 @@ static struct diractive_options {
     const char *diractive_name;
     int dir_name_len;
     const char param_opt;
-}diractive_opt_table[4] = {
+}diractive_options[4] = {
     {"data", 4, 'I'},
     {"string", 6, 'S'},
     {"entry", 5, 'L'},
@@ -55,14 +55,14 @@ static struct diractive_options {
 static void init_inst_trie() {
     int i;
     for(i = 0; i < 16; i++) {
-        trie_insert(instruction_lookup, instraction_opt_tab[i]->inst_name, &instraction_opt_tab[i]); 
+        trie_insert(instruction_lookup, instraction_options[i]->inst_name, &instraction_options[i]); 
     }
 }
 
 static void init_dir_trie() {
     int i;
     for(i = 0; i < 4; i++) {
-        trie_insert(direction_lookup, diractive_opt_table[i]->diractive_name, &diractive_opt_table[i]); 
+        trie_insert(direction_lookup, diractive_options[i]->diractive_name, &diractive_options[i]); 
     }
 }
 
