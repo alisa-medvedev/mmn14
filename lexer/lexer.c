@@ -16,40 +16,42 @@ trie_node directive_lookup;
 /*operand options: I - Integer  L - Label  R - Register*/
 static struct instraction_options {
     const char *inst_name;
+    int inst_key;
     int inst_name_len;
     const char *source_operand_opt;
     const char *dest_operand_opt;
 } instraction_options[16] = {
-    {"mov", 3, "ILR", "LR"},
-    {"cmp", 3, "ILR", "ILR"}, 
-    {"add", 3, "ILR", "LR"},
-    {"sub", 3, "ILR", "LR"},
-    {"lea", 3, "L", "LR"},
+    {"mov", mov, 3, "ILR", "LR"},
+    {"cmp", cmp, 3, "ILR", "ILR"}, 
+    {"add", add, 3, "ILR", "LR"},
+    {"sub", sub, 3, "ILR", "LR"},
+    {"lea", lea, 3, "L", "LR"},
 
-    {"not", 3, NULL, "LR"},
-    {"clr", 3, NULL, "LR"},
-    {"inc", 3, NULL, "LR"},
-    {"dec", 3, NULL, "LR"},
-    {"jmp", 3, NULL, "LR"},
-    {"bne", 3, NULL, "LR"},
-    {"red", 3, NULL, "LR"},
-    {"prn", 3, NULL, "ILR"},
-    {"jsr", 3, NULL, "LR"},
+    {"not", not, 3, NULL, "LR"},
+    {"clr", clr, 3, NULL, "LR"},
+    {"inc", inc, 3, NULL, "LR"},
+    {"dec", dec, 3, NULL, "LR"},
+    {"jmp", jmp, 3, NULL, "LR"},
+    {"bne", bne, 3, NULL, "LR"},
+    {"red", red, 3, NULL, "LR"},
+    {"prn", prn, 3, NULL, "ILR"},
+    {"jsr", jsr, 3, NULL, "LR"},
 
-    {"rts", 3, NULL, NULL},
-    {"stop", 4, NULL, NULL}
+    {"rts", rts, 3, NULL, NULL},
+    {"stop", stop, 4, NULL, NULL}
 };
 
 
 static struct diractive_options {
     const char *diractive_name;
+    int dir_key;
     int dir_name_len;
     const char param_opt;
 }diractive_options[4] = {
-    {"data", 4, 'I'},
-    {"string", 6, 'S'},
-    {"entry", 5, 'L'},
-    {"extern", 6, 'L'}
+    {"data", dir_data_line, 4, 'I'},
+    {"string", dir_string_line, 6, 'S'},
+    {"entry", dir_entry_line, 5, 'L'},
+    {"extern", dir_extern_line, 6, 'L'}
 };
 
 static void init_inst_trie() {
@@ -143,11 +145,8 @@ static int dirc_parameter_parser(char *line, char *token, char *dirc) {
 
 }
 
-static int inst_parameter_parameter(char *line, char *token, char *inst) {
-     numeric_token_parser(line, token, INST_PARAM_MIN, INST_PARAM_MAX);
-}
 
-char inst_operand_type(char *line) {
+char inst_operand_parser(char *line) {
     if(*line == '@') {
         return 'R';
     }
