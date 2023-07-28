@@ -68,16 +68,6 @@ static void init_dir_trie() {
     }
 }
 
-
-/*Create a utils.c for such func*/
-void skip_spaces(char *line) {
-    int i = 0;
-    while (line[i] == ' ' || line[i] == '\t') {
-        i++;
-    }
-}
-
-
 enam label_validity_opt{
     non_alpha_first_char,
     contains_non_alpha_numric_char,
