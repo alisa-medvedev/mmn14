@@ -8,8 +8,7 @@
 #define MAX_LINE_LENGTH 90
 #define MAX_MACRO_NAME_LENGTH 50
 
-
-
+/* function to add a line to a macro */
 void add_line_to_macro(struct macro *macro, const char *line) {
     if (macro->num_of_lines >= macro->capacity) {
         macro->capacity *= 2;
@@ -22,19 +21,21 @@ void add_line_to_macro(struct macro *macro, const char *line) {
     macro->num_of_lines++;
 }
 
+/* function to initialize a macro */
 void initialize_macro(struct macro *macro) {
     macro->capacity = INITIAL_CAPACITY;
     macro->num_of_lines = 0;
     macro->lines = malloc(macro->capacity * sizeof(char**));
 }
 
+/* function to initialize a macro table */
 void initialize_macro_table(struct macro_table *table) {
     table->macros = malloc(INITIAL_CAPACITY * sizeof(struct macro));
     table->num_macros = 0;
     table->capacity = INITIAL_CAPACITY;
 }
 
-
+/* function to add a macro to the macro table */
 void add_macro_to_table(struct macro_table *table, const struct macro *new_macro) {
     int new_capacity;
     struct macro *new_macros;
@@ -45,7 +46,7 @@ void add_macro_to_table(struct macro_table *table, const struct macro *new_macro
         new_capacity = table->capacity * 2;
         new_macros = realloc(table->macros, new_capacity * sizeof(struct macro));
         if (new_macros == NULL) {
-            printf("Error: Memory allocation failed when expanding macro table.\n");
+            printf("error: memory allocation failed when expanding macro table.\n");
             return;
         }
         table->macros = new_macros;
@@ -64,17 +65,18 @@ void add_macro_to_table(struct macro_table *table, const struct macro *new_macro
     table->num_macros++;
 }
 
-
+/* function to search for a macro by name in the macro table */
 int search_macro_name(const struct macro_table *table, const char *name) {
     int i;
     for (i = 0; i < table->num_macros; i++) {
-        if (compare_until_whitespace(table->macros[i].macro_name,name) == 0){
+        if (compare_until_whitespace(table->macros[i].macro_name, name) == 0){
             return i;
         }
     }  
     return -1;
 }
 
+/* function to free the memory used by a macro */
 void free_macro(struct macro *macro) {
     int i;
     if (macro->lines != NULL) {
@@ -86,6 +88,7 @@ void free_macro(struct macro *macro) {
     macro->num_of_lines = 0; 
 }
 
+/* function to free the memory used by the macro table */
 void free_macro_table(struct macro_table *table) {
     int i;
     int j;
@@ -100,6 +103,7 @@ void free_macro_table(struct macro_table *table) {
     table->capacity = 0;
 }
 
+/* function to compare two strings until a whitespace is encountered */
 int compare_until_whitespace(const char *str1, const char *str2) {
     int i = 0;    
     while (str1[i] != '\0' && str2[i] != '\0') {
