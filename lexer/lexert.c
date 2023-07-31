@@ -113,7 +113,8 @@ static boolean inst_operand_parser(char *p1, char *p2, char *token, struct synte
                     ast.union_option = ast.syntax_err;
                     return FALSE;
                 }
-                if(*++p1 > 47 && )
+                p1++;
+                if(*p1 > 47 && *p1 < 56)
             default:
                 return FALSE;
         }
@@ -173,7 +174,7 @@ struct syntex_tree get_pattern(char *line) {
         line = p2 + 1;
         skip_spaces(line);
         if(*line == '\0') {
-            strcpy(ast.syntax_err,"Empty line after a directive declaration.");
+            strcpy(ast.syntax_err,"Empty line after a label declaration.");
             ast.union_option = ast.syntax_err;
             return ast;
         }
