@@ -10,8 +10,8 @@
 
 struct syntex_tree
 {
-    char syntax_error_msg[ERROR_LEN];
-    char label[LABEL_LEN];
+    char syntax_error[ERROR_LEN];
+    char label[LABEL_LEN]
 
     enum{
         syntax_error,
