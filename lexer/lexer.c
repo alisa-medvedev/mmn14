@@ -27,24 +27,24 @@ void skip_spaces(char *line) {
 static struct instraction_options {
     const char *inst_name;
     int inst_key;
-    const char *source_operand_opt;
-    const char *dest_operand_opt;
+    int *source_operand_opt;
+    int *dest_operand_opt;
 } instraction_options[16] = {
-    {"mov", mov, "ILR", "LR"},
-    {"cmp", cmp, "ILR", "ILR"}, 
-    {"add", add, "ILR", "LR"},
-    {"sub", sub, "ILR", "LR"},
-    {"lea", lea, "L", "LR"},
+    {"mov", mov, {const_op, label_op, register_op}, {label_op, register_op}},
+    {"cmp", cmp, {const_op, label_op, register_op}, {const_op, label_op, register_op}}, 
+    {"add", add, {const_op, label_op, register_op}, {label_op, register_op}},
+    {"sub", sub, {const_op, label_op, register_op}, {label_op, register_op}},
+    {"lea", lea, {label_op}, {label_op, register_op}},
 
-    {"not", not, NULL, "LR"},
-    {"clr", clr, NULL, "LR"},
-    {"inc", inc, NULL, "LR"},
-    {"dec", dec, NULL, "LR"},
-    {"jmp", jmp, NULL, "LR"},
-    {"bne", bne, NULL, "LR"},
-    {"red", red, NULL, "LR"},
-    {"prn", prn, NULL, "ILR"},
-    {"jsr", jsr, NULL, "LR"},
+    {"not", not, NULL, {label_op, register_op}},
+    {"clr", clr, NULL, {label_op, register_op}},
+    {"inc", inc, NULL, {label_op, register_op}},
+    {"dec", dec, NULL, {label_op, register_op}},
+    {"jmp", jmp, NULL, {label_op, register_op}},
+    {"bne", bne, NULL, {label_op, register_op}},
+    {"red", red, NULL, {label_op, register_op}},
+    {"prn", prn, NULL, {label_op, register_op}},
+    {"jsr", jsr, NULL, {label_op, register_op}},
 
     {"rts", rts, NULL, NULL},
     {"stop", stop, NULL, NULL}
@@ -54,7 +54,7 @@ static struct instraction_options {
 static struct diractive_options {
     const char *diractive_name;
     int dir_key;
-    const char param_opt;
+    int param_opt;
 }diractive_options[4] = {
     {"data", dir_data_line, 'I'},
     {"string", dir_string_line, 'S'},
@@ -65,7 +65,7 @@ static struct diractive_options {
 static boolean label_parser(char *p1, char *p2, char *token, struct syntex_tree *ast) {
     int count = 0;
     if(!isalpha(*p1)) {
-        strcpy(ast.syntax_err,"The first characted of a label is not a letter.");
+        strcpy(ast->syntax_error,"The first character of a label is not a letter.");
         return FALSE;
     }
     *token = *p1;
@@ -73,11 +73,11 @@ static boolean label_parser(char *p1, char *p2, char *token, struct syntex_tree 
     token++;
     while(p1 != p2) {
         if(!isalnum(*p1)) {
-            strcpy(ast.syntax_err,"Label contains non alpha numeric characters.");
+            strcpy(ast->syntax_error,"Label contains non alpha numeric characters.");
             return FALSE;
         }
         if(count == LABEL_LEN) {
-            strcpy(ast.syntax_err,"Label excedes the max label length.");
+            strcpy(ast->syntax_error,"Label excedes the max label length.");
             return FALSE;
         }
         *token = *p1;
@@ -94,17 +94,17 @@ static boolean inst_operand_parser(char *p1, char *p2, char *token, struct synte
     int int_operand;
     /*check the case of 0 parameters*/
     if(p1 == '\0') {
-        if(*inst->source_operand_opt == NULL && *inst->onst char *dest_operand_opt) {
+        if(inst->source_operand_opt == NULL && inst->onst char dest_operand_opt) {
             return TRUE;
         }
-        strcpy(ast.syntax_err,"missing parameters");
+        strcpy(ast->syntax_error,"missing parameters");
         return FALSE;
     }
     p2 = strchr(line, ',');
     /*if ',' found - there should be at least 2 parameters*/
     if(p2) {
-        if(*inst->source_operand_opt != NULL) {
-            strcpy(ast.syntax_err,"instraction --- recieves only 1 or none parameters");
+        if(inst->source_operand_opt != NULL) {
+            strcpy(ast->syntax_error,"instraction --- recieves only 1 or none parameters");
             return FALSE;
         }
         operand_num = 2;
@@ -120,8 +120,8 @@ static boolean inst_operand_parser(char *p1, char *p2, char *token, struct synte
             case 'L':
             case 'R':
                 if(*++p1 != 'r') {
-                    strcpy(ast.syntax_err,"Unrecognized parameter");
-                    ast.union_option = ast.syntax_err;
+                    strcpy(ast->syntax_error,"Unrecognized parameter");
+                    ast.union_option = ast.syntax_error;
                     return FALSE;
                 }
                 p1++;
@@ -185,8 +185,8 @@ struct syntex_tree get_pattern(char *line) {
         line = p2 + 1;
         skip_spaces(line);
         if(*line == '\0') {
-            strcpy(ast.syntax_err,"Empty line after a label declaration.");
-            ast.union_option = ast.syntax_err;
+            strcpy(ast->syntax_error,"Empty line after a label declaration.");
+            ast.line_type = ast.syntax_error;
             return ast;
         }
     }
@@ -194,8 +194,8 @@ struct syntex_tree get_pattern(char *line) {
         line++;
         dir = search_trie(directive_lookup, line);
         if(dir == NULL){
-            strcpy(ast.syntax_err,"Undefined directory.");
-            ast.union_option = ast.syntax_err;
+            strcpy(ast.syntax_error,"Undefined directory.");
+            ast.union_option = ast.syntax_error;
             return ast;
         }
         ast.inst_or_dir.dir_line.dir_option = dir->dir_key;
@@ -206,8 +206,8 @@ struct syntex_tree get_pattern(char *line) {
     else{
         inst = search_trie(instruction_lookup, line);
         if(inst == NULL){
-            strcpy(ast.syntax_err,"Undefined instraction.");
-            ast.union_option = ast.syntax_err;
+            strcpy(ast.syntax_error,"Undefined instraction.");
+            ast.union_option = ast.syntax_error;
             return ast;
         }
         ast.inst_or_dir.inst_line.inst_name = inst->inst_key;
