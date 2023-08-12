@@ -6,7 +6,9 @@
         "stdio.h": "c",
         "symbol_table.h": "c",
         "macro_table.h": "c",
-        "object_file.h": "c"
+        "object_file.h": "c",
+        "random": "c",
+        "limits": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
